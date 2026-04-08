@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf-form-tools"
+version = "1.0.0"
+description = "Template-aware tools for filling scanned PDF forms with visual verification"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "opencv-python-headless",
+  "pymupdf",
+  "pillow",
+  "pypdf",
+  "reportlab",
+  "python-bidi",
+]
+
+[project.scripts]
+pdf-form-tools = "pdf_form_tools.cli:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pdf_form_tools*"]
