@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
 
@@ -14,9 +15,23 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 
-FONT_REGULAR = Path(r"C:\Windows\Fonts\arial.ttf")
-FONT_BOLD = Path(r"C:\Windows\Fonts\arialbd.ttf")
 TEXT_COLOR = (20, 20, 20, 255)
+FONT_CANDIDATES = {
+    False: [
+        Path(r"C:\Windows\Fonts\arial.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"),
+        Path("/Library/Fonts/Arial.ttf"),
+        Path("/System/Library/Fonts/Supplemental/Arial.ttf"),
+    ],
+    True: [
+        Path(r"C:\Windows\Fonts\arialbd.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        Path("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"),
+        Path("/Library/Fonts/Arial Bold.ttf"),
+        Path("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+    ],
+}
 
 
 @dataclass(frozen=True)
@@ -48,8 +63,16 @@ def visual_text(text: str) -> str:
     return get_display(text) if contains_hebrew(text) else text
 
 
-def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    font_path = FONT_BOLD if bold else FONT_REGULAR
+@lru_cache(maxsize=2)
+def resolve_font_path(bold: bool = False) -> Path:
+    for candidate in FONT_CANDIDATES[bold]:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"Could not find a usable {'bold' if bold else 'regular'} TrueType font.")
+
+
+def load_font(size: int, bold: bool = False) -> ImageFont.ImageFont:
+    font_path = resolve_font_path(bold=bold)
     return ImageFont.truetype(str(font_path), size)
 
 

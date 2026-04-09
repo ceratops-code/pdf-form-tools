@@ -4,9 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pdf-form-tools"
-version = "1.0.0"
+version = "2.0.0"
 description = "Template-aware tools for filling scanned PDF forms with visual verification"
+readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["pdf", "forms", "opencv", "pymupdf", "document-processing"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Office/Business :: Office Suites",
+]
+urls = { Homepage = "https://github.com/RomanOstr/pdf-form-tools", Repository = "https://github.com/RomanOstr/pdf-form-tools", Issues = "https://github.com/RomanOstr/pdf-form-tools/issues" }
 dependencies = [
   "numpy",
   "opencv-python-headless",
@@ -17,8 +33,12 @@ dependencies = [
   "python-bidi",
 ]
 
-[project.scripts]
-pdf-form-tools = "pdf_form_tools.cli:main"
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "pytest>=8.0",
+  "ruff>=0.6",
+]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -26,3 +46,9 @@ pdf-form-tools = "pdf_form_tools.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["pdf_form_tools*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
