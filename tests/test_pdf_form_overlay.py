@@ -43,7 +43,22 @@ def test_draw_check_creates_bold_upward_mark() -> None:
     assert np.count_nonzero(alpha) > 900
 
 
-def test_paste_signature_respects_minimum_a4_width() -> None:
+def test_paste_signature_respects_minimum_a4_width_without_height_limit() -> None:
+    page = Image.new("RGBA", (2100, 2970), (0, 0, 0, 0))
+    signature = Image.new("RGBA", (20, 20), (0, 0, 0, 255))
+
+    overlay.paste_signature(
+        page,
+        signature,
+        Rect(1000, 500, 300, 10),
+        min_cm_width=2.0,
+        y_offset=10,
+    )
+
+    assert page.getchannel("A").getbbox() == (1050, 310, 1250, 510)
+
+
+def test_paste_signature_does_not_exceed_narrow_line_width() -> None:
     page = Image.new("RGBA", (2100, 2970), (0, 0, 0, 0))
     signature = Image.new("RGBA", (20, 20), (0, 0, 0, 255))
 
@@ -52,11 +67,26 @@ def test_paste_signature_respects_minimum_a4_width() -> None:
         signature,
         Rect(1000, 500, 100, 10),
         min_cm_width=2.0,
-        target_height=80,
         y_offset=10,
     )
 
-    assert page.getchannel("A").getbbox() == (950, 430, 1150, 510)
+    assert page.getchannel("A").getbbox() == (1000, 410, 1100, 510)
+
+
+def test_paste_signature_preserves_aspect_ratio_when_height_limited() -> None:
+    page = Image.new("RGBA", (2100, 2970), (0, 0, 0, 0))
+    signature = Image.new("RGBA", (40, 20), (0, 0, 0, 255))
+
+    overlay.paste_signature(
+        page,
+        signature,
+        Rect(1000, 500, 300, 10),
+        min_cm_width=2.0,
+        target_height=50,
+        y_offset=10,
+    )
+
+    assert page.getchannel("A").getbbox() == (1100, 460, 1200, 510)
 
 
 def test_detect_id_slots_follows_printed_guides() -> None:

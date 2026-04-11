@@ -311,12 +311,18 @@ def paste_signature(
         signature = signature.crop(alpha_bbox)
 
     min_signature_width = int(round((overlay.width / 21.0) * min_cm_width))
-    target_width = max(min_signature_width, int(line_rect.w * 0.55))
+    target_width = min(line_rect.w, max(min_signature_width, int(line_rect.w * 0.55)))
+    width_scale = target_width / signature.width
     if target_height is None:
-        target_height = 260
-    resized = signature.resize((target_width, target_height), Image.Resampling.LANCZOS)
-    x = int(line_rect.x + (line_rect.w - target_width) / 2)
-    y = int(line_rect.y - target_height + y_offset)
+        scale = width_scale
+    else:
+        scale = min(width_scale, target_height / signature.height)
+
+    resized_width = max(1, int(round(signature.width * scale)))
+    resized_height = max(1, int(round(signature.height * scale)))
+    resized = signature.resize((resized_width, resized_height), Image.Resampling.LANCZOS)
+    x = int(line_rect.x + (line_rect.w - resized_width) / 2)
+    y = int(line_rect.y - resized_height + y_offset)
     overlay.alpha_composite(resized, (x, y))
 
 

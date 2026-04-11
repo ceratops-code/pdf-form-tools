@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2
+
+- Preserve signature image aspect ratios when scaling to form signature lines.
+
 ## 2.0.1
 
 - Add Python 3.14 support metadata and CI coverage.
