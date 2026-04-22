@@ -54,6 +54,30 @@ class Rect:
             dy = dx
         return Rect(self.x + dx, self.y + dy, self.w - dx * 2, self.h - dy * 2)
 
+    def band(
+        self,
+        *,
+        top_pad: int,
+        height: int,
+        left_pad: int = 0,
+        right_pad: int | None = None,
+    ) -> "Rect":
+        if right_pad is None:
+            right_pad = left_pad
+        return Rect(self.x + left_pad, self.y + top_pad, self.w - left_pad - right_pad, height)
+
+    def above(
+        self,
+        *,
+        height: int,
+        gap: int = 0,
+        left_pad: int = 0,
+        right_pad: int | None = None,
+    ) -> "Rect":
+        if right_pad is None:
+            right_pad = left_pad
+        return Rect(self.x + left_pad, self.y - gap - height, self.w - left_pad - right_pad, height)
+
 
 def contains_hebrew(text: str) -> bool:
     return any("\u0590" <= ch <= "\u05FF" for ch in text)
@@ -191,9 +215,7 @@ def draw_text(
 
 
 def centered_address_box(rect: Rect, *, top_pad: int, side_pad: int, height: int, right_pad: int | None = None) -> Rect:
-    if right_pad is None:
-        right_pad = side_pad
-    return Rect(rect.x + side_pad, rect.y + top_pad, rect.w - side_pad - right_pad, height)
+    return rect.band(top_pad=top_pad, height=height, left_pad=side_pad, right_pad=right_pad)
 
 
 def detect_square_boxes(page_gray: np.ndarray, region: Rect) -> list[Rect]:

@@ -13,6 +13,16 @@ def test_rect_inset() -> None:
     assert Rect(10, 20, 30, 40).inset(5) == Rect(15, 25, 20, 30)
 
 
+def test_rect_band() -> None:
+    rect = Rect(100, 200, 400, 120)
+    assert rect.band(top_pad=10, height=50, left_pad=20) == Rect(120, 210, 360, 50)
+
+
+def test_rect_above() -> None:
+    rect = Rect(100, 200, 400, 20)
+    assert rect.above(height=50, gap=10) == Rect(100, 140, 400, 50)
+
+
 def test_centered_address_box() -> None:
     rect = Rect(100, 200, 400, 120)
     assert centered_address_box(rect, top_pad=10, side_pad=20, height=50) == Rect(120, 210, 360, 50)
@@ -27,6 +37,23 @@ def test_load_font_uses_existing_system_font() -> None:
 def test_contains_hebrew_detects_hebrew_characters() -> None:
     assert overlay.contains_hebrew("\u05d0\u05de\u05d9\u05dc\u05d9")
     assert not overlay.contains_hebrew("Emily")
+
+
+def test_writable_box_detects_blank_band_inside_field() -> None:
+    page_gray = np.full((180, 420), 255, dtype=np.uint8)
+    rect = Rect(40, 40, 320, 80)
+    inner = rect.inset(8)
+    page_gray[inner.y : inner.y + 12, inner.x:inner.x2] = 0
+    page_gray[inner.y2 - 12 : inner.y2, inner.x:inner.x2] = 0
+    page_gray[inner.y + 20 : inner.y2 - 20, inner.x : inner.x + 50] = 0
+    page_gray[inner.y + 20 : inner.y2 - 20, inner.x2 - 35 : inner.x2] = 0
+
+    box = overlay.writable_box(page_gray, rect)
+
+    assert inner.x + 45 <= box.x <= inner.x + 60
+    assert inner.x2 - 40 <= box.x2 <= inner.x2 - 20
+    assert inner.y + 20 <= box.y <= inner.y + 30
+    assert inner.y2 - 20 <= box.y2 <= inner.y2 - 10
 
 
 def test_draw_check_creates_bold_upward_mark() -> None:
@@ -102,6 +129,37 @@ def test_detect_id_slots_follows_printed_guides() -> None:
     assert len(slots) == 9
     assert slots[0] == Rect(13, 42, 94, 43)
     assert slots[-1] == Rect(813, 42, 93, 43)
+
+
+def test_detect_square_boxes_finds_sorted_boxes() -> None:
+    page_gray = np.full((220, 520), 255, dtype=np.uint8)
+    region = Rect(20, 20, 420, 160)
+    for offset in (40, 140, 240):
+        page_gray[70:115, 20 + offset : 20 + offset + 45] = 0
+
+    boxes = overlay.detect_square_boxes(page_gray, region)
+
+    assert boxes == [
+        Rect(60, 70, 45, 45),
+        Rect(160, 70, 45, 45),
+        Rect(260, 70, 45, 45),
+    ]
+
+
+def test_detect_lines_finds_sorted_lines() -> None:
+    page_gray = np.full((240, 1100), 255, dtype=np.uint8)
+    region = Rect(50, 50, 950, 120)
+    lines = [
+        Rect(90, 70, 600, 6),
+        Rect(320, 95, 620, 6),
+        Rect(430, 120, 520, 6),
+    ]
+    for line in lines:
+        page_gray[line.y : line.y2, line.x : line.x2] = 0
+
+    detected = overlay.detect_lines(page_gray, region)
+
+    assert detected == lines
 
 
 def test_draw_id_number_places_digits_in_detected_slots() -> None:
