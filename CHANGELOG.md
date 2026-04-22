@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+
+- Add reusable `Rect.band()` and `Rect.above()` helpers for shared form geometry.
+- Keep `centered_address_box()` as a compatibility wrapper over the shared band helper.
+- Add regression tests for writable-band detection and line and checkbox-region detection.
+
 ## 2.0.2
 
 - Preserve signature image aspect ratios when scaling to form signature lines.
